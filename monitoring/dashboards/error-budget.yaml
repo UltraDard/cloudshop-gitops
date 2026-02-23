@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-error-budget
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  error-budget-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "CloudShop - Error Budget",
+        "panels": [
+          {
+            "title": "SLO Availability (%)",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "(sum(rate(http_requests_total{status!~\"5..\",namespace=\"cloudshop-prod\"}[30d])) / sum(rate(http_requests_total{namespace=\"cloudshop-prod\"}[30d]))) * 100"
+              }
+            ]
+          },
+          {
+            "title": "Error Budget Consumed (%)",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "(1 - (sum(rate(http_requests_total{status!~\"5..\",namespace=\"cloudshop-prod\"}[30d])) / sum(rate(http_requests_total{namespace=\"cloudshop-prod\"}[30d])))) / (1 - 0.999) * 100"
+              }
+            ]
+          }
+        ]
+      }
+    }

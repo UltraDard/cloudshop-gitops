@@ -188,4 +188,31 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
 - **Dashboards** : Importation automatique du dashboard "CloudShop - Overview" via ConfigMap.
 
 ## Partie 5 : Sécurité & SRE
-*À compléter*
+
+### Policy as Code (Kyverno)
+- **Installation** : Kyverno déployé en mode Admission Controller pour le filtrage en amont des déploiements.
+- **Policies implémentées** :
+  - `disallow-latest-tag` : Interdiction stricte de l'usage du tag `:latest` (testé et bloqué).
+  - `require-resources` : Obligation de définir les `requests` et `limits` (CPU/RAM).
+  - `disallow-privileged` : Blocage des conteneurs privilégiés pour réduire la surface d'attaque.
+- **Validation** : Tentative de déploiement de `nginx:latest` bloquée par webhook.
+
+### Runtime Security (Falco)
+- **Installation** : Falco déployé via Helm.
+- **Règles personnalisées** :
+  - Détection d'ouverture de shell interactif dans les conteneurs frontend/gateway.
+  - Surveillance des écritures dans `/root` et lecture des fichiers sensibles (`/etc/shadow`).
+  - Alertes sur les connexions réseau sortantes inattendues.
+
+### CI/CD Sécurisé (Cosign)
+- **Signature d'images** : Workflow GitHub Actions (`.github/workflows/docker-ci.yml`) intégrant la signature via Cosign pour chaque changement.
+- **Vérification** : ClusterPolicy Kyverno en place pour n'accepter que les images signées par la clé publique de l'organisation.
+
+### SLO & Error Budget
+- **Objectif** : 99.9% de disponibilité calculé via Prometheus.
+- **Visualisation** : Dashboard Grafana dédié affichant l'Error Budget (en % et minutes) et le Burn Rate.
+- **Requêtes PromQL** : Définition des taux d'erreur sur 30j pour le calcul automatique de la fiabilité.
+
+### Chaos Engineering (Litmus)
+- **Expérience** : Suppression aléatoire de pods (`pod-delete`) sur le service frontend.
+- **Résultat** : Kubernetes a automatiquement recréé les pods, maintenant la disponibilité (probe HTTP 200 passée avec succès).

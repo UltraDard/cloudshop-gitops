@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-custom-rules
+  namespace: falco
+data:
+  custom-rules.yaml: |
+    - rule: Suspicious Shell in Container
+      desc: Détecte l'exécution de shell dans un conteneur
+      condition: >
+        spawned_process and
+        container and
+        proc.name in (bash, sh, zsh) and
+        container.image.repository in (td-jour6-frontend, td-jour6-api-gateway)
+      output: >
+        Shell exécuté dans un conteneur CloudShop
+        (user=%user.name container=%container.name image=%container.image.repository
+        command=%proc.cmdline)
+      priority: WARNING
+      tags: [container, shell, cloudshop]
+ 
+    - rule: Write Below Root
+      desc: Détecte une écriture dans un répertoire système
+      condition: >
+        open_write and
+        container and
+        fd.name startswith /root and
+        not proc.name in (dpkg, rpm, yum)
+      output: >
+        Écriture détectée dans /root
+        (user=%user.name container=%container.name file=%fd.name command=%proc.cmdline)
+      priority: ERROR
+      tags: [filesystem, container]
+ 
+    - rule: Sensitive File Access
+      desc: Détecte l'accès à des fichiers sensibles
+      condition: >
+        open_read and
+        container and
+        fd.name in (/etc/shadow, /etc/passwd, /etc/sudoers)
+      output: >
+        Accès à un fichier sensible détecté
+        (user=%user.name container=%container.name file=%fd.name command=%proc.cmdline)
+      priority: CRITICAL
+      tags: [filesystem, security]
+ 
+    - rule: Unexpected Network Connection
+      desc: Détecte une connexion réseau inattendue
+      condition: >
+        outbound and
+        container and
+        fd.sport != 80 and fd.sport != 443 and fd.sport != 8080 and
+        not proc.name in (curl, wget)
+      output: >
+        Connexion réseau inattendue depuis un conteneur
+        (container=%container.name connection=%fd.name command=%proc.cmdline)
+      priority: WARNING
+      tags: [network, container]

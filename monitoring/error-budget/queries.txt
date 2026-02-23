@@ -1,0 +1,34 @@
+# Queries PromQL pour Error Budget
+# 1. Availability actuelle (30 jours)
+(
+  sum(rate(http_requests_total{status!~"5..",namespace="cloudshop-prod"}[30d]))
+  /
+  sum(rate(http_requests_total{namespace="cloudshop-prod"}[30d]))
+) * 100
+
+# 2. Error Budget consommé (en %)
+(
+  1 - (
+    sum(rate(http_requests_total{status!~"5..",namespace="cloudshop-prod"}[30d]))
+    /
+    sum(rate(http_requests_total{namespace="cloudshop-prod"}[30d]))
+  )
+) / (1 - 0.999) * 100
+
+# 3. Error Budget restant (en minutes)
+43.2 * (
+  1 - (
+    (1 - (
+      sum(rate(http_requests_total{status!~"5..",namespace="cloudshop-prod"}[30d]))
+      /
+      sum(rate(http_requests_total{namespace="cloudshop-prod"}[30d]))
+    )) / (1 - 0.999)
+  )
+)
+
+# 4. Burn Rate (1h)
+(
+  sum(rate(http_requests_total{status=~"5..",namespace="cloudshop-prod"}[1h]))
+  /
+  sum(rate(http_requests_total{namespace="cloudshop-prod"}[1h]))
+) / (1 - 0.999)

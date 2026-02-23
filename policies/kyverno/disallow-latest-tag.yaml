@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Tag
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      L'utilisation du tag 'latest' est interdite car elle empêche
+      le versionning et rend les rollbacks difficiles.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: require-image-tag
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - cloudshop-prod
+    validate:
+      message: "L'utilisation du tag 'latest' est interdite. Utilisez un tag versionné (ex: v1.0.0)."
+      pattern:
+        spec:
+          containers:
+          - image: "!*:latest"

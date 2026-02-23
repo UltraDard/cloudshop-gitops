@@ -1,0 +1,35 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resources
+  annotations:
+    policies.kyverno.io/title: Require Resources
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Tous les conteneurs doivent avoir des requests et limits CPU/Memory
+      pour garantir la stabilité du cluster.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: check-cpu-memory-requests
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - cloudshop-prod
+    validate:
+      message: "Les conteneurs doivent avoir des requests et limits CPU/Memory définis."
+      pattern:
+        spec:
+          containers:
+          - resources:
+              requests:
+                memory: "?*"
+                cpu: "?*"
+              limits:
+                memory: "?*"
+                cpu: "?*"

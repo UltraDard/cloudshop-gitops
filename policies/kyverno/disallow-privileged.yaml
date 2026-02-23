@@ -1,0 +1,30 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: critical
+    policies.kyverno.io/description: >-
+      Les conteneurs privileged ont accès à toutes les ressources du host
+      et représentent un risque de sécurité majeur.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: check-privileged
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          namespaces:
+          - cloudshop-prod
+    validate:
+      message: "Les conteneurs privilégiés sont interdits."
+      pattern:
+        spec:
+          containers:
+          - securityContext:
+              privileged: false

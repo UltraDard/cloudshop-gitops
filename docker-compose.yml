@@ -1,0 +1,96 @@
+networks:
+  cloudshop-net:
+    driver: bridge
+
+volumes:
+  postgres-data:
+
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cloudshop-postgres
+    environment:
+      POSTGRES_DB: cloudshop
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cloudshop-net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d cloudshop" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./src/auth-service
+    container_name: cloudshop-auth
+    environment:
+      PORT: 8081
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cloudshop-net
+    ports:
+      - "8081:8081"
+
+  products-api:
+    build:
+      context: ./src/products-api
+    container_name: cloudshop-products
+    environment:
+      PORT: 8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cloudshop-net
+    ports:
+      - "8082:8082"
+
+  orders-api:
+    build:
+      context: ./src/orders-api
+    container_name: cloudshop-orders
+    environment:
+      PORT: 8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cloudshop-net
+    ports:
+      - "8083:8083"
+
+  api-gateway:
+    build:
+      context: ./src/api-gateway
+    container_name: cloudshop-gateway
+    environment:
+      PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PRODUCTS_SERVICE_URL: http://products-api:8082
+      ORDERS_SERVICE_URL: http://orders-api:8083
+    depends_on:
+      - auth-service
+      - products-api
+      - orders-api
+    networks:
+      - cloudshop-net
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./src/frontend
+    container_name: cloudshop-frontend
+    depends_on:
+      - api-gateway
+    networks:
+      - cloudshop-net
+    ports:
+      - "3000:80"
