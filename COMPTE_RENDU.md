@@ -158,7 +158,34 @@ kubectl apply -f argocd/application.yaml
 - **Rollback** : Retour à une version précédente en 1 clic
 
 ## Partie 4 : Observabilité
-*À compléter*
+| Composant | Outil | Statut |
+|-----------|-------|--------|
+| Metrics Server | Prometheus | Opérationnel ✅ |
+| Visualisation | Grafana | Opérationnel ✅ |
+| Alerting | Alertmanager | Opérationnel ✅ |
+
+### Installation via Helm
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+kubectl create namespace monitoring
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring \
+  --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false \
+  --set prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues=false \
+  --set grafana.adminPassword=admin123
+```
+
+### Accès aux outils
+- **Prometheus** : `kubectl port-forward svc/prometheus-operated 9090:9090 -n monitoring` ([http://localhost:9090](http://localhost:9090))
+- **Grafana** : `kubectl port-forward svc/prometheus-grafana 3001:80 -n monitoring` ([http://localhost:3001](http://localhost:3001))
+  - User: `admin` / Password: `admin123`
+- **Alertmanager** : `kubectl port-forward svc/prometheus-kube-prometheus-alertmanager 9093:9093 -n monitoring` ([http://localhost:9093](http://localhost:9093))
+
+### Configuration effectuée
+- **ServiceMonitors** : Créés pour les 4 microservices backend pour le scraping automatique des métriques `/metrics`.
+- **Alerting Rules** : Alertes configurées pour HighErrorRate, HighLatencyP95, PodCrashLooping, et PodNotReady.
+- **Dashboards** : Importation automatique du dashboard "CloudShop - Overview" via ConfigMap.
 
 ## Partie 5 : Sécurité & SRE
 *À compléter*

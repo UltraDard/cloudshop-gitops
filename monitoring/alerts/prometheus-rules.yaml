@@ -1,0 +1,86 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudshop-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: cloudshop.rules
+    interval: 30s
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        (
+          sum(rate(http_requests_total{status=~"5..",namespace="cloudshop-prod"}[5m]))
+          /
+          sum(rate(http_requests_total{namespace="cloudshop-prod"}[5m]))
+        ) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+        component: backend
+      annotations:
+        summary: "Taux d'erreur élevé détecté"
+        description: "Le service {{ $labels.service }} a un taux d'erreur de {{ $value | humanizePercentage }} sur les 5 dernières minutes."
+    - alert: HighLatencyP95
+      expr: |
+        histogram_quantile(0.95,
+          sum(rate(http_request_duration_seconds_bucket{namespace="cloudshop-prod"}[5m])) by (le, service)
+        ) > 1
+      for: 10m
+      labels:
+        severity: warning
+        component: performance
+      annotations:
+        summary: "Latence P95 élevée"
+        description: "Le service {{ $labels.service }} a une latence P95 de {{ $value }}s."
+    - alert: PodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{namespace="cloudshop-prod"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+        component: infrastructure
+      annotations:
+        summary: "Pod en CrashLoop détecté"
+        description: "Le pod {{ $labels.pod }} redémarre fréquemment."
+    - alert: PodNotReady
+      expr: |
+        kube_pod_status_phase{namespace="cloudshop-prod",phase!="Running"} > 0
+      for: 5m
+      labels:
+        severity: warning
+        component: infrastructure
+      annotations:
+        summary: "Pod non disponible"
+        description: "Le pod {{ $labels.pod }} n'est pas en état Running."
+    - alert: HighMemoryUsage
+      expr: |
+        (
+          container_memory_working_set_bytes{namespace="cloudshop-prod"}
+          /
+          container_spec_memory_limit_bytes{namespace="cloudshop-prod"}
+        ) > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        component: resources
+      annotations:
+        summary: "Utilisation mémoire élevée"
+        description: "Le conteneur {{ $labels.container }} utilise {{ $value | humanizePercentage }} de sa limite mémoire."
+    - alert: SLOBreach
+      expr: |
+        (
+          sum(rate(http_requests_total{status!~"5..",namespace="cloudshop-prod"}[30m]))
+          /
+          sum(rate(http_requests_total{namespace="cloudshop-prod"}[30m]))
+        ) < 0.999
+      for: 5m
+      labels:
+        severity: critical
+        component: slo
+      annotations:
+        summary: "SLO de disponibilité non respecté"
+        description: "La disponibilité est de {{ $value | humanizePercentage }}, en dessous du SLO de 99.9%."

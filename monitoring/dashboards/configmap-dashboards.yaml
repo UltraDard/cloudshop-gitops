@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  cloudshop-overview.json: |
+    {
+      "dashboard": {
+        "title": "CloudShop - Overview",
+        "panels": [
+          {
+            "title": "Request Rate (RPS)",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{namespace=\"cloudshop-prod\"}[5m]))",
+                "legendFormat": "Total RPS"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "Error Rate (%)",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status=~\"5..\",namespace=\"cloudshop-prod\"}[5m])) / sum(rate(http_requests_total{namespace=\"cloudshop-prod\"}[5m])) * 100",
+                "legendFormat": "Error Rate"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "P95 Latency",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{namespace=\"cloudshop-prod\"}[5m])) by (le))",
+                "legendFormat": "P95 Latency"
+              }
+            ],
+            "type": "graph"
+          },
+          {
+            "title": "Pods Status",
+            "targets": [
+              {
+                "expr": "count(kube_pod_status_phase{namespace=\"cloudshop-prod\",phase=\"Running\"})",
+                "legendFormat": "Running"
+              },
+              {
+                "expr": "count(kube_pod_status_phase{namespace=\"cloudshop-prod\",phase!=\"Running\"})",
+                "legendFormat": "Not Running"
+              }
+            ],
+            "type": "stat"
+          }
+        ]
+      }
+    }

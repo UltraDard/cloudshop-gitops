@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: products-api
+  namespace: monitoring
+  labels:
+    app: products-api
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: products-api
+  namespaceSelector:
+    matchNames:
+    - cloudshop-prod
+  endpoints:
+  - port: http
+    interval: 30s
+    path: /metrics
+    scheme: http
