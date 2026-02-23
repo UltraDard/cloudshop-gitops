@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: cloudshop-project
+  namespace: argocd
+spec:
+  description: Projet CloudShop E-Commerce
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: cloudshop-prod
+      server: https://kubernetes.default.svc
+    - namespace: cloudshop-staging
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

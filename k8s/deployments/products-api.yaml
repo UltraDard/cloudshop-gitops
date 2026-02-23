@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: products-api
+  namespace: cloudshop-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: products-api
+  template:
+    metadata:
+      labels:
+        app: products-api
+    spec:
+      containers:
+      - name: products-api
+        image: td-jour6-products-api:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8082
+        env:
+        - name: PORT
+          value: "8082"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8082
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8082
+          initialDelaySeconds: 5
+          periodSeconds: 5
