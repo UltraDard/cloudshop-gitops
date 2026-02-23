@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: td-jour6-auth-service:latest
+        image: td-jour6-auth-service:v2
         imagePullPolicy: Never
         ports:
         - containerPort: 8081

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: orders-api
-        image: td-jour6-orders-api:latest
+        image: td-jour6-orders-api:v2
         imagePullPolicy: Never
         ports:
         - containerPort: 8083

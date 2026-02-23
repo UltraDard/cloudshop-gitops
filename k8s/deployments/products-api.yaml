@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: products-api
-        image: td-jour6-products-api:latest
+        image: td-jour6-products-api:v2
         imagePullPolicy: Never
         ports:
         - containerPort: 8082
