@@ -13,10 +13,19 @@ spec:
       labels:
         app: auth-service
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
       containers:
       - name: auth-service
         image: td-jour6-auth-service:v2
         imagePullPolicy: Never
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
         ports:
         - containerPort: 8081
         env:

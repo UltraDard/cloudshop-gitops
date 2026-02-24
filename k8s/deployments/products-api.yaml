@@ -13,10 +13,19 @@ spec:
       labels:
         app: products-api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
       containers:
       - name: products-api
         image: td-jour6-products-api:v2
         imagePullPolicy: Never
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
         ports:
         - containerPort: 8082
         env:
