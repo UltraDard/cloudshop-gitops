@@ -18,7 +18,7 @@
 | API Gateway | Single | node:20-alpine | User non-root, healthcheck |
 | Auth Service | Single | node:20-alpine | User non-root, healthcheck |
 | Products API | Multi-stage | python:3.11-slim | Séparation build/runtime |
-| Orders API | Multi-stage | golang:1.21-alpine → alpine | Binary statique |
+| Orders API | Multi-stage | golang:1.24-alpine → scratch | Binary statique |
 
 ### Sécurité appliquée
 - Utilisateur non-root (appuser:1001)
@@ -31,10 +31,10 @@
 | Image | Taille | Cible TD |
 |-------|--------|----------|
 | frontend | ~20.7MB | < 50MB ✅ |
-| api-gateway | ~94.8MB | < 150MB ✅ |
-| auth-service | ~94.7MB | < 150MB ✅ |
-| products-api | ~106MB | < 180MB ✅ |
-| orders-api | ~6.77MB | < 20MB ✅ |
+| api-gateway | ~102MB | < 150MB ✅ |
+| auth-service | ~102MB | < 150MB ✅ |
+| products-api | ~107MB | < 180MB ✅ |
+| orders-api | ~13.8MB | < 20MB ✅ |
 
 ### Docker Compose
 - Network `cloudshop-net` (bridge)
