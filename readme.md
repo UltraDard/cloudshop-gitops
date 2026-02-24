@@ -61,6 +61,15 @@ curl http://localhost:8082/health # Products
 curl http://localhost:8083/health # Orders
 ```
 
+# tester avec trivy
+```bash
+trivy image -q td-jour6-frontend:latest | findstr "Total"
+trivy image -q td-jour6-api-gateway:latest | findstr "Total"
+trivy image -q td-jour6-auth-service:latest | findstr "Total"
+trivy image -q td-jour6-products-api:latest | findstr "Total"
+trivy image -q td-jour6-orders-api:latest | findstr "Total"
+```
+
 ---
 
 ## Partie 2 : Kubernetes
