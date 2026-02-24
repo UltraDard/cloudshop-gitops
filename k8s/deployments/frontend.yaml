@@ -28,6 +28,13 @@ spec:
             drop: ["ALL"]
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: nginx-cache
+          mountPath: /var/cache/nginx
+        - name: nginx-run
+          mountPath: /var/run
+        - name: tmp
+          mountPath: /tmp
         resources:
           requests:
             memory: "64Mi"
@@ -47,3 +54,10 @@ spec:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
+      volumes:
+      - name: nginx-cache
+        emptyDir: {}
+      - name: nginx-run
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
